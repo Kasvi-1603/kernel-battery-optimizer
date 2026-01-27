@@ -84,6 +84,3 @@ Master Server (Flask) → Agent (Python) → Kernel Module (C) → Process Sched
 
 GPL (for kernel module compatibility)
 
-## Author
-
-RVCE Team - Operating Systems Lab Project
