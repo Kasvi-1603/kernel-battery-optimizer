@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Battery Saver - Master Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        header p {
+            font-size: 1em;
+            color: #7f8c8d;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .card-header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .card-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 600;
+            margin: 10px 0;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+
+        .mode-indicator {
+            padding: 12px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.3em;
+            margin: 15px 0;
+        }
+
+        .mode-BALANCED {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .mode-MODERATE {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .mode-POWER_SAVE {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .mode-CRITICAL {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .mode-UNKNOWN {
+            background: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            height: 24px;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3498db;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .history-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 6px 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+            font-size: 0.9em;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .status-online {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status-offline {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .btn:active {
+            background: #21618c;
+        }
+
+        .test-controls {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            margin-top: 20px;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .stress-meter {
+            margin: 15px 0;
+        }
+
+        .stress-bar {
+            background: #e9ecef;
+            height: 16px;
+            border-radius: 4px;
+            position: relative;
+            border: 1px solid #dee2e6;
+        }
+
+        .stress-indicator {
+            position: absolute;
+            width: 3px;
+            height: 20px;
+            background: #2c3e50;
+            top: -2px;
+            transition: left 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 1.8em;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+
+        .timestamp {
+            font-size: 0.85em;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Battery Saver Dashboard</h1>
+            <p>Real-time System Monitoring & Power Management</p>
+        </header>
+
+        <div class="dashboard">
+            <!-- Status Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Server Status</div>
+                </div>
+                <div style="text-align: center;">
+                    <span id="serverStatus" class="status-badge status-online">ONLINE</span>
+                    <p class="stat-label" style="margin-top: 15px;">Total Predictions</p>
+                    <div class="stat-value" id="totalPredictions">0</div>
+                </div>
+            </div>
+
+            <!-- Current Mode Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Current Power Mode</div>
+                </div>
+                <div id="currentMode" class="mode-indicator mode-UNKNOWN">
+                    WAITING...
+                </div>
+                <p class="stat-label" style="text-align: center;">Nice Value: <span id="niceValue">0</span></p>
+            </div>
+
+            <!-- Process Count Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Process Count</div>
+                </div>
+                <div class="stat-value" id="processCount" style="color: #667eea;">0</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="processProgress" style="width: 0%;">0%</div>
+                </div>
+                <p class="stat-label">Max: 300 processes</p>
+            </div>
+
+            <!-- CPU Usage Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">CPU Usage</div>
+                </div>
+                <div class="stat-value" id="cpuUsage" style="color: #764ba2;">0%</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="cpuProgress" style="width: 0%;">0%</div>
+                </div>
+                <p class="stat-label">Current load</p>
+            </div>
+        </div>
+
+        <!-- Stress Score Meter -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+                <div class="card-title">System Stress Score</div>
+            </div>
+            <div class="stress-meter">
+                <div class="stress-bar">
+                    <div class="stress-indicator" id="stressIndicator" style="left: 0%;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.9em; color: #666;">
+                    <span>Low (0.0)</span>
+                    <span>Moderate (0.5)</span>
+                    <span>Critical (1.0)</span>
+                </div>
+            </div>
+            <p style="text-align: center; font-size: 1.5em; font-weight: bold; margin-top: 15px;" id="stressScore">0.000</p>
+        </div>
+
+        <!-- Test Controls -->
+        <div class="test-controls">
+            <div class="card-header">
+                <div class="card-title">Test Prediction</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="input-group">
+                    <label for="testProcesses">Process Count (0-300)</label>
+                    <input type="number" id="testProcesses" min="0" max="500" value="150" />
+                </div>
+                <div class="input-group">
+                    <label for="testCpu">CPU Usage (0-100%)</label>
+                    <input type="number" id="testCpu" min="0" max="100" value="50" step="0.1" />
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn" onclick="testPrediction()">Test Prediction</button>
+                <button class="btn" onclick="refreshStatus()" style="margin-left: 10px;">Refresh Status</button>
+            </div>
+        </div>
+
+        <!-- Prediction History -->
+        <div class="history-section" style="margin-top: 20px;">
+            <div class="history-header">
+                <h2 style="font-size: 1.2em; color: #2c3e50; font-weight: 600;">Recent Predictions</h2>
+                <span class="timestamp" id="lastUpdate">Last updated: Never</span>
+            </div>
+            <div id="historyList">
+                <div class="loading">No predictions yet. Test the system above!</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let updateInterval;
+
+        // Initialize dashboard
+        window.onload = function() {
+            refreshStatus();
+            updateHistory();
+            
+            // Auto-refresh every 5 seconds
+            updateInterval = setInterval(() => {
+                refreshStatus();
+                updateHistory();
+            }, 5000);
+        };
+
+        // Refresh server status
+        async function refreshStatus() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                
+                if (data.status === 'online') {
+                    document.getElementById('serverStatus').textContent = 'ONLINE';
+                    document.getElementById('serverStatus').className = 'status-badge status-online';
+                }
+                
+                document.getElementById('totalPredictions').textContent = data.total_predictions;
+                
+                if (data.latest_prediction && data.latest_prediction.mode !== 'UNKNOWN') {
+                    updateDashboard(data.latest_prediction);
+                }
+            } catch (error) {
+                console.error('Error fetching status:', error);
+                document.getElementById('serverStatus').textContent = 'OFFLINE';
+                document.getElementById('serverStatus').className = 'status-badge status-offline';
+            }
+        }
+
+        // Update dashboard with prediction data
+        function updateDashboard(prediction) {
+            // Update mode
+            const modeEl = document.getElementById('currentMode');
+            modeEl.textContent = prediction.mode;
+            modeEl.className = `mode-indicator mode-${prediction.mode}`;
+            
+            // Update nice value
+            document.getElementById('niceValue').textContent = prediction.nice;
+            
+            // Update process count
+            document.getElementById('processCount').textContent = prediction.process_count;
+            const processPercent = Math.min((prediction.process_count / 300) * 100, 100);
+            document.getElementById('processProgress').style.width = processPercent + '%';
+            document.getElementById('processProgress').textContent = Math.round(processPercent) + '%';
+            
+            // Update CPU usage
+            document.getElementById('cpuUsage').textContent = prediction.cpu_usage.toFixed(1) + '%';
+            document.getElementById('cpuProgress').style.width = prediction.cpu_usage + '%';
+            document.getElementById('cpuProgress').textContent = Math.round(prediction.cpu_usage) + '%';
+            
+            // Update stress score
+            const stressScore = prediction.stress_score || 0;
+            document.getElementById('stressScore').textContent = stressScore.toFixed(3);
+            document.getElementById('stressIndicator').style.left = (stressScore * 100) + '%';
+        }
+
+        // Test prediction with manual values
+        async function testPrediction() {
+            const processCount = parseInt(document.getElementById('testProcesses').value);
+            const cpuUsage = parseFloat(document.getElementById('testCpu').value);
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        process_count: processCount,
+                        cpu_usage: cpuUsage
+                    })
+                });
+                
+                const data = await response.json();
+                updateDashboard(data);
+                updateHistory();
+                
+                // Show success feedback
+                alert(`Prediction successful!\nMode: ${data.mode}\nNice: ${data.nice}`);
+            } catch (error) {
+                console.error('Error testing prediction:', error);
+                alert('Error connecting to server. Is it running?');
+            }
+        }
+
+        // Update prediction history
+        async function updateHistory() {
+            try {
+                const response = await fetch('/history');
+                const history = await response.json();
+                
+                const historyList = document.getElementById('historyList');
+                
+                if (history.length === 0) {
+                    historyList.innerHTML = '<div class="loading">No predictions yet. Test the system above!</div>';
+                    return;
+                }
+                
+                // Show most recent first
+                const recentHistory = [...history].reverse().slice(0, 10);
+                
+                historyList.innerHTML = recentHistory.map((item, index) => `
+                    <div class="history-item">
+                        <div>
+                            <strong>${item.mode}</strong> 
+                            <span style="color: #7f8c8d;">| Nice: ${item.nice}</span>
+                        </div>
+                        <div>
+                            <span style="margin-right: 15px;">Proc: ${item.process_count}</span>
+                            <span style="margin-right: 15px;">CPU: ${item.cpu_usage.toFixed(1)}%</span>
+                            <span style="color: #7f8c8d;">Score: ${item.stress_score.toFixed(3)}</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('lastUpdate').textContent = 
+                    `Last updated: ${new Date().toLocaleTimeString()}`;
+                    
+            } catch (error) {
+                console.error('Error fetching history:', error);
+            }
+        }
+    </script>
+</body>
+</html>
+
