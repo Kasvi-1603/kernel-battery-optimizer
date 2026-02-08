@@ -7,12 +7,13 @@
 #include <linux/uaccess.h>
 #include <linux/sched.h>
 
-static void apply_power_save_policy(void);
+static void apply_power_policy(int nice_value);
 
 #define PROC_STATS   "ai_battery_stats"
 #define PROC_CONTROL "ai_battery_control"
 
 static char power_mode[16] = "BALANCED";
+static int current_nice = 0;
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("RVCE Team");
@@ -36,6 +37,7 @@ static int stats_show(struct seq_file *m, void *v)
     seq_printf(m, "CPU cores available: %u\n", num_online_cpus());
     seq_printf(m, "Current PID: %d\n", current->pid);
     seq_printf(m, "Power mode: %s\n", power_mode);
+    seq_printf(m, "Current nice value: %d\n", current_nice);
 
     return 0;
 }
@@ -59,19 +61,37 @@ static ssize_t control_write(struct file *file,
                              size_t count,
                              loff_t *pos)
 {
-    if (count > sizeof(power_mode) - 1)
-        count = sizeof(power_mode) - 1;
+    char buf[16];
+    int nice_value = 0;
+    
+    if (count > sizeof(buf) - 1)
+        count = sizeof(buf) - 1;
 
-    if (copy_from_user(power_mode, buffer, count))
+    if (copy_from_user(buf, buffer, count))
         return -EFAULT;
 
-    power_mode[count] = '\0';
+    buf[count] = '\0';
 
-    printk(KERN_INFO "AI Battery Mode set to: %s\n", power_mode);
-
-    if (strncmp(power_mode, "POWER_SAVE", 10) == 0) {
-       apply_power_save_policy();
+    /* Parse mode string: "BALANCED", "MODERATE", "POWER_SAVE", "CRITICAL" */
+    if (strncmp(buf, "BALANCED", 8) == 0) {
+        nice_value = 0;
+        strncpy(power_mode, "BALANCED", sizeof(power_mode));
+    } else if (strncmp(buf, "MODERATE", 8) == 0) {
+        nice_value = 5;
+        strncpy(power_mode, "MODERATE", sizeof(power_mode));
+    } else if (strncmp(buf, "POWER_SAVE", 10) == 0) {
+        nice_value = 10;
+        strncpy(power_mode, "POWER_SAVE", sizeof(power_mode));
+    } else if (strncmp(buf, "CRITICAL", 8) == 0) {
+        nice_value = 15;
+        strncpy(power_mode, "CRITICAL", sizeof(power_mode));
     }
+
+    current_nice = nice_value;
+    printk(KERN_INFO "AI Battery Mode: %s (nice=%d)\n", power_mode, nice_value);
+    
+    /* Apply the policy with the calculated nice value */
+    apply_power_policy(nice_value);
 
     return count;
 }
@@ -80,7 +100,7 @@ static const struct proc_ops control_ops = {
     .proc_write = control_write,
 };
 
-static void apply_power_save_policy(void)
+static void apply_power_policy(int nice_value)
 {
     struct task_struct *task;
 
@@ -94,11 +114,11 @@ static void apply_power_save_policy(void)
         if (task->prio < 120)
             continue;
 
-        /* Lower priority of background processes */
-        set_user_nice(task, 10);
+        /* Apply the nice value to background processes */
+        set_user_nice(task, nice_value);
     }
 
-    printk(KERN_INFO "AI Battery: Applied POWER_SAVE niceness policy\n");
+    printk(KERN_INFO "AI Battery: Applied nice=%d to user processes\n", nice_value);
 }
 
 
@@ -127,4 +147,7 @@ static void __exit ai_battery_exit(void)
 
 module_init(ai_battery_init);
 module_exit(ai_battery_exit);
+
+
+
 
